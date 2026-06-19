@@ -58,10 +58,10 @@ export default function Home() {
           </div>
 
           <div>
-            <label className="block mb-2 font-semibold text-gray-800">Code secret</label>
+            <label className="block mb-2 font-semibold text-gray-800">Groupe</label>
             <input
-              type="password"
-              placeholder="Choisis un code"
+              type="text"
+              placeholder="Donne ton groupe"
               value={code}
               onChange={(e) => setCode(e.target.value)}
               className="w-full rounded-xl border border-gray-300 p-3 text-black placeholder-gray-400 focus:border-violet-500 focus:outline-none"
