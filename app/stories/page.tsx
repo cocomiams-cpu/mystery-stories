@@ -6,8 +6,8 @@ import { useEffect, useState } from 'react';
 interface Story {
   id: number;
   prenom: string;
-  code: string;
-  anecdote: string;
+  code: number;
+  histoire: string;   // ← AJOUTE cette ligne (ou anecdote selon le nom)
   created_at: string;
 }
 
