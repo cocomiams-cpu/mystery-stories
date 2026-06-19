@@ -56,8 +56,8 @@ export default function StoriesPage() {
                     {new Date(story.created_at).toLocaleDateString('fr-FR')}
                   </span>
                 </div>
-                <p className="text-gray-800 text-lg italic">"{story.anecdote}"</p>
-                <div className="mt-2 text-sm text-gray-500">🔑 Code : {story.code}</div>
+                <p className="text-gray-800 text-lg italic">"{story.histoire}"</p>
+                <div className="mt-2 text-sm text-gray-500">🔑 Groupe : {story.code}</div>
               </div>
             ))}
           </div>

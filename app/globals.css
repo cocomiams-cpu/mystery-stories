@@ -24,3 +24,22 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@media print {
+  body, main {
+    background: white !important;
+    margin: 0 !important;
+    padding: 20px !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  #resultat-tirage {
+    background: white !important;
+    color: black !important;
+    padding: 20px !important;
+  }
+  #resultat-tirage * {
+    color: black !important;
+  }
+}

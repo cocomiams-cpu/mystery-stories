@@ -87,8 +87,8 @@ export default function Home() {
           </button>
 
           <div className="text-center mt-4">
-            <a href="/stories" className="text-violet-600 hover:underline">
-              Voir toutes les anecdotes →
+            <a href="/participants" className="text-violet-600 hover:underline">
+              Qui a répondu ? →
             </a>
           </div>
         </form>
