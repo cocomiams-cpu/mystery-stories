@@ -9,6 +9,7 @@ interface Story {
   code: number;
   histoire: string;   // ← AJOUTE cette ligne (ou anecdote selon le nom)
   created_at: string;
+    tag?: string | null;  // ← AJOUTE ÇA (peut être 'A', 'B', ou null)
 }
 
 export default function StoriesPage() {

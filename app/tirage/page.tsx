@@ -8,6 +8,7 @@ interface Story {
   prenom: string;
   code: number;
   histoire: string;
+  tag?: string | null;
 }
 
 interface Match {
@@ -22,6 +23,7 @@ export default function TiragePage() {
   const [matchs, setMatchs] = useState<Match[]>([]);
   const [historique, setHistorique] = useState<any[]>([]);
 
+  // Charger les anecdotes
   useEffect(() => {
     fetch('/api/stories')
       .then((res) => res.json())
@@ -48,6 +50,7 @@ export default function TiragePage() {
       .catch(console.error);
   }, []);
 
+  // Charger l'historique
   useEffect(() => {
     const saved = localStorage.getItem('tirage_historique');
     if (saved) {
@@ -60,6 +63,7 @@ export default function TiragePage() {
     }
   }, []);
 
+  // 1. Sélection aléatoire de 2 groupes
   const choisirGroupesAleatoires = () => {
     const keys = Object.keys(groupes).map(Number);
     if (keys.length < 2) {
@@ -71,6 +75,7 @@ export default function TiragePage() {
     setGroupe2(shuffled[1]);
   };
 
+  // 2. Tirage classique (2 groupes)
   const lancerTirageComplet = () => {
     if (groupe1 === null || groupe2 === null) {
       alert('Veuillez sélectionner deux groupes.');
@@ -120,6 +125,7 @@ export default function TiragePage() {
     localStorage.setItem('tirage_historique', JSON.stringify(newHistorique));
   };
 
+  // 3. 🌍 Tirage pour TOUS les groupes (avec BOUCLE AUTOMATIQUE)
   const lancerTirageGlobal = () => {
     const keys = Object.keys(groupes).map(Number);
     if (keys.length < 2) {
@@ -147,44 +153,69 @@ export default function TiragePage() {
       return;
     }
 
-    const shuffledPeople = [...allPeople].sort(() => Math.random() - 0.5);
-    const usedStoryIds = new Set<number>();
-    const resultats: Match[] = [];
+    // Fonction interne qui tente un tirage et retourne le résultat ou null
+    const tenterTirage = (): Match[] | null => {
+      const shuffledPeople = [...allPeople].sort(() => Math.random() - 0.5);
+      const usedStoryIds = new Set<number>();
+      const resultats: Match[] = [];
 
-    for (const person of shuffledPeople) {
-      const available = allStories.filter(
-        (s) => s.code !== person.code && !usedStoryIds.has(s.id)
-      );
+      for (const person of shuffledPeople) {
+        const available = allStories.filter((s) => {
+          if (s.code === person.code) return false;
+          if (usedStoryIds.has(s.id)) return false;
+          const personTag = person.tag;
+          const storyTag = s.tag;
+          if (personTag === 'A' && storyTag === 'B') return false;
+          if (personTag === 'B' && storyTag === 'A') return false;
+          return true;
+        });
 
-      if (available.length === 0) {
-        alert(
-          `Impossible d'assigner une histoire à ${person.prenom} (groupe ${person.code}). ` +
-          `Plus d'histoires disponibles hors de son groupe.`
-        );
-        return;
+        if (available.length === 0) {
+          return null; // Échec de cette tentative
+        }
+
+        const randomStory = available[Math.floor(Math.random() * available.length)];
+        usedStoryIds.add(randomStory.id);
+        resultats.push({
+          personne: person.prenom,
+          histoire: randomStory.histoire,
+        });
       }
 
-      const randomStory = available[Math.floor(Math.random() * available.length)];
-      usedStoryIds.add(randomStory.id);
-      resultats.push({
-        personne: person.prenom,
-        histoire: randomStory.histoire,
-      });
+      return resultats;
+    };
+
+    // 🔄 Boucle de 500 tentatives maximum
+    let tentative = 0;
+    let resultatFinal: Match[] | null = null;
+
+    while (tentative < 500 && resultatFinal === null) {
+      resultatFinal = tenterTirage();
+      tentative++;
     }
 
-    setMatchs(resultats);
+    if (resultatFinal) {
+      setMatchs(resultatFinal);
 
-    const nouvelleEntree = {
-      date: new Date().toISOString(),
-      type: 'global',
-      matchs: resultats,
-    };
-    const newHistorique = [nouvelleEntree, ...historique];
-    setHistorique(newHistorique);
-    localStorage.setItem('tirage_historique', JSON.stringify(newHistorique));
+      const nouvelleEntree = {
+        date: new Date().toISOString(),
+        type: 'global',
+        matchs: resultatFinal,
+      };
+      const newHistorique = [nouvelleEntree, ...historique];
+      setHistorique(newHistorique);
+      localStorage.setItem('tirage_historique', JSON.stringify(newHistorique));
+
+      console.log(`✅ Tirage réussi après ${tentative} tentative(s).`);
+    } else {
+      alert(
+        `❌ Impossible de trouver une combinaison valide après 500 essais.\n` +
+        `Vérifie les contraintes : groupes trop petits ou tags A/B bloquants.`
+      );
+    }
   };
 
-  // 👇 Fonction print/PDF sans aucune librairie
+  // 4. Export PDF (sans librairie)
   const telechargerPDF = () => {
     window.print();
   };
@@ -245,7 +276,6 @@ export default function TiragePage() {
           </button>
         </div>
 
-        {/* Zone du résultat — sera imprimée */}
         <div id="resultat-tirage">
           {matchs.length > 0 && (
             <div className="bg-violet-50 rounded-xl p-6 mb-6">
@@ -265,7 +295,6 @@ export default function TiragePage() {
           )}
         </div>
 
-        {/* Bouton PDF (masqué à l'impression) */}
         {matchs.length > 0 && (
           <button
             onClick={telechargerPDF}
@@ -275,7 +304,6 @@ export default function TiragePage() {
           </button>
         )}
 
-        {/* Historique (masqué à l'impression) */}
         <div className="no-print">
           <h2 className="text-2xl font-bold text-violet-700 mb-4">📋 Historique des tirages</h2>
           {historique.length === 0 ? (
